@@ -1,6 +1,6 @@
 import joplin from 'api';
 import { HistItem, parseItem } from './history';
-import { HistSettings, freqScope, freqLoc, freqOpen } from './settings';
+import { HistSettings, freqScope, freqLoc, freqOpen, displayMode } from './settings';
 
 const DEBUG = false;
 
