@@ -2,7 +2,7 @@ import joplin from 'api';
 import { MenuItemLocation, ToolbarButtonLocation } from 'api/types';
 import addHistItem from './history';
 import { HistSettings, getSettingsSection, updateSettings,
-    trailFormat, freqOpen, freqLoc, freqScope, setFolders, includeType } from './settings'
+    trailFormat, freqOpen, freqLoc, freqScope, setFolders, includeType, displayMode } from './settings'
 import updateHistView from './panel'
 
 const settings: HistSettings = {
