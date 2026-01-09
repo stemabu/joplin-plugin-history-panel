@@ -34,6 +34,8 @@ const settings: HistSettings = {
   freqLoc: freqLoc.top,
   freqScope: freqScope.week,
   userStyle: '',
+  displayMode: displayMode.grouped,
+  simpleListLimit: 20,
 }
 
 joplin.plugins.register({
