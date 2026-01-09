@@ -30,6 +30,8 @@ export interface HistSettings {
   freqDisplay: number;
   freqScope: freqScope;
   userStyle: string;
+  displayMode: displayMode;
+  simpleListLimit: number;
 }
 
 export enum includeType {
@@ -62,6 +64,11 @@ export enum freqOpen {
   'open',
 }
 
+export enum displayMode {
+  'grouped',
+  'simple',
+}
+
 export async function updateSettings(settings: HistSettings) {
   settings.histNoteId = await joplin.settings.value('histNoteId');
   settings.excludeNotes = new Set((await joplin.settings.value('histExcludeNotes')).split(','));
@@ -89,6 +96,8 @@ export async function updateSettings(settings: HistSettings) {
   settings.freqLoc = await joplin.settings.value('histFreqLoc');
   settings.freqScope = await joplin.settings.value('histFreqScope');
   settings.userStyle = await joplin.settings.value('histUserStyle');
+  settings.displayMode = await joplin.settings.value('histDisplayMode');
+  settings.simpleListLimit = await joplin.settings.value('histSimpleListLimit');
 };
 
 export function getSettingsSection(settings: HistSettings): Record<string, SettingItem> {
@@ -355,6 +364,31 @@ export function getSettingsSection(settings: HistSettings): Record<string, Setti
       public: true,
       label: 'Panel: Stylesheet',
     },
+    
+   'histDisplayMode': {
+      value: settings.displayMode,
+      type: SettingItemType.Int,
+      section: 'HistoryPanel',
+      isEnum: true,
+      public: true,
+      label: 'Panel: Display mode',
+      options: {
+        '0': 'Grouped (Today, Last 7 days, etc.)',
+        '1': 'Simple list of recent notes',
+      }
+    },
+
+    'histSimpleListLimit': {
+      value: settings.simpleListLimit,
+      type: SettingItemType.Int,
+      minimum: 5,
+      maximum: 100,
+      step: 5,
+      section: 'HistoryPanel',
+      public: true,
+      label: 'Simple mode: Number of recent notes to show',
+    },    
+    
   };
 }
 
