@@ -37,6 +37,11 @@ async function getHistHtml(maxItems: number, params: HistSettings): Promise<stri
 function getItemHtml(lines: string[], itemMap: Map<string,
     string>, maxItems: number, params: HistSettings):
     [string[], Map<string, number>] {
+    
+  if (params.displayMode === 1) {  // 1 = displayMode.simple
+  return getSimpleItemHtml(lines, itemMap, maxItems, params);
+  }
+  
   const dateScope = new Set(['today']);
   const activeTrail = new Set() as Set<number>;
   let itemCounter = new Map<string, number>();
@@ -80,6 +85,76 @@ function getItemHtml(lines: string[], itemMap: Map<string,
   }
 
   return [itemHtml, itemCounter];
+}
+
+function getSimpleItemHtml(lines: string[], itemMap: Map<string,
+    string>, maxItems: number, params: HistSettings):
+    [string[], Map<string, number>] {
+  
+  const activeTrail = new Set() as Set<number>;
+  let itemCounter = new Map<string, number>();
+  let itemHtml: string[] = [];
+  const N = Math.min(params.simpleListLimit, lines.length, maxItems);
+  const dateScope = new Set(['all']); // für updateStats
+
+  itemHtml.push(`<p class="hist-simple-header" style="font-size: ${params.panelTextSize}px; font-weight: bold; margin-top: 10px; margin-bottom: 10px;">Last ${N} Notes</p>`);
+
+  for (let i = 0; i < N; i++) {
+    const [item, error] = parseItem(lines[i]);
+    if (error) continue;
+    
+    const plotTag = getPlotTag(item.trails, activeTrail, params);
+    const [backTagStart, backTagStop] = getBackTag(i, params);
+    const todoTag = getTodoTag(item, params);
+    const timeTag = getTimeAgoTag(item.date, params);
+
+    if (params.freqLoc != freqLoc.hide)
+      updateStats(item, itemCounter, itemMap, dateScope, params);
+
+    itemHtml.push(`
+      <p class="hist-item" style="font-size: ${params.panelTextSize}px; height: ${params.plotSize[1]}px">
+        ${plotTag}
+        <span class="hist-number" style="color: #999; margin-right: 8px; min-width: 25px; display: inline-block; font-size: ${params.panelTextSize - 2}px;">${i + 1}.</span>
+        ${backTagStart}
+        <a class="hist-item" href="#" data-slug="${item.id}" data-line="${i}">
+          ${todoTag}${escapeHtml(item.title)}
+        </a>
+        ${backTagStop}
+        ${timeTag}
+      </p>
+    `);
+  }
+
+  return [itemHtml, itemCounter];
+}
+
+function getTimeAgoTag(date: Date, params: HistSettings): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  let timeStr = '';
+  if (diffMins < 1) {
+    timeStr = 'just now';
+  } else if (diffMins < 60) {
+    timeStr = `${diffMins} min ago`;
+  } else if (diffHours < 24) {
+    timeStr = `${diffHours} hrs ago`;
+  } else if (diffDays === 1) {
+    timeStr = 'yesterday';
+  } else if (diffDays < 7) {
+    timeStr = `${diffDays} days ago`;
+  } else {
+    // formating of date
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    timeStr = `${day}.${month}.${year}`;
+  }
+  
+  return `<span class="hist-time" style="color: #666; font-size: ${params.panelTextSize - 2}px; margin-left: 10px; white-space: nowrap;">${timeStr}</span>`;
 }
 
 function getFoldTag(item: HistItem, dateScope: Set<string>,
