@@ -344,7 +344,19 @@ function getStatsHtml(itemCounter: Map<string, number>,
   return itemHtml.join('\n');
 }
 
-// From https://stackoverflow.com/a/6234804/561309
+function getDateDay(date: Date): number {
+  return Math.ceil((date.getTime() - 1000*60*date.getTimezoneOffset()) / 86400000);
+}
+
+function getMonthString(date: Date): string {
+  return date.toUTCString().split(' ')[2] + ' ' + getYearString(date);
+}
+
+function getYearString(date: Date): string {
+  return date.toUTCString().split(' ')[3];
+}
+
+  // From https://stackoverflow.com/a/6234804/561309
 function escapeHtml(unsafe:string): string {
   return unsafe
     .replace(/&/g, "&amp;")
