@@ -284,11 +284,34 @@ function updateStats(item: HistItem, itemCounter: Map<string, number>,
 
 function getStatsHtml(itemCounter: Map<string, number>,
       itemMap: Map<string, string>, params: HistSettings): string {
-  const maxR = 0.9*Math.min(params.panelTextSize, params.plotSize[0]) / 2;  // px, leaving 10% margin
+  const maxR = 0.9*Math.min(params.panelTextSize, params.plotSize[0]) / 2;
   const minR = 1;
   const itemHtml: string[] = [];
   const noteOrder = new Map([...itemCounter.entries()].sort((a, b) => b[1] - a[1]));
   const maxCount = Math.max(...itemCounter.values());
+
+  let scopeText = '';
+  switch(params.freqScope) {
+    case freqScope.today:
+      scopeText = 'today';
+      break;
+    case freqScope.week:
+      scopeText = 'last 7 days';
+      break;
+    case freqScope.month:
+      scopeText = 'this month';
+      break;
+    case freqScope.year:
+      scopeText = 'this year';
+      break;
+    case freqScope.all:
+      if (params.maxDays > 0) {
+        scopeText = `all = ${params.maxDays} days`;
+      } else {
+        scopeText = 'all time';
+      }
+      break;
+  }
 
   let strOpen = '';
   if (params.freqOpen == freqOpen.open)
@@ -296,7 +319,7 @@ function getStatsHtml(itemCounter: Map<string, number>,
   itemHtml.push(`
     <details class="hist-section"${strOpen}>
       <summary class="hist-section" style="font-size: ${params.panelTextSize}px">
-      Frequent notes</summary>`);
+      Frequent notes (${scopeText})</summary>`);
 
   let i = 0;
   noteOrder.forEach( (count, id) => {
@@ -319,18 +342,6 @@ function getStatsHtml(itemCounter: Map<string, number>,
   });
   itemHtml.push('</details>');
   return itemHtml.join('\n');
-}
-
-function getDateDay(date: Date): number {
-  return Math.ceil((date.getTime() - 1000*60*date.getTimezoneOffset()) / 86400000);
-}
-
-function getMonthString(date: Date): string {
-  return date.toUTCString().split(' ')[2] + ' ' + getYearString(date);
-}
-
-function getYearString(date: Date): string {
-  return date.toUTCString().split(' ')[3];
 }
 
 // From https://stackoverflow.com/a/6234804/561309
