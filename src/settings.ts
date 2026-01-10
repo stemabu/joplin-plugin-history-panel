@@ -118,7 +118,7 @@ export function getSettingsSection(settings: HistSettings): Record<string, Setti
       type: SettingItemType.Int,
       minimum: 0,
       maximum: 365,
-      step: 10,
+      step: 5,
       section: 'HistoryPanel',
       public: true,
       label: 'History: Days of history to keep',
