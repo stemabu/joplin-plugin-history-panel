@@ -13,9 +13,14 @@ async function getHistHtml(maxItems: number, params: HistSettings): Promise<stri
   }
 
   let itemMap = new Map<string, string>();
-
-  const lines = histNote.body.split('\n')
-  const [itemHtml, itemCounter] = getItemHtml(lines, itemMap, maxItems, params);
+  const lines = histNote.body.split('\n');
+  
+  let itemCounter = new Map<string, number>();
+  if (params.freqLoc != freqLoc.hide) {
+    itemCounter = calculateFrequentNotes(lines, itemMap, params);
+  }
+  
+  const [itemHtml, _] = getItemHtml(lines, itemMap, maxItems, params);
 
   let statsHtml = '';
   if (params.freqLoc != freqLoc.hide)
@@ -34,19 +39,35 @@ async function getHistHtml(maxItems: number, params: HistSettings): Promise<stri
   return allHtml.join('\n')
 }
 
+function calculateFrequentNotes(lines: string[], itemMap: Map<string, string>, 
+    params: HistSettings): Map<string, number> {
+  
+  let itemCounter = new Map<string, number>();
+  const dateScope = new Set(['all']);
+  
+  for (let i = 0; i < lines.length; i++) {
+    const [item, error] = parseItem(lines[i]);
+    if (error) continue;
+    
+    updateStats(item, itemCounter, itemMap, dateScope, params);
+  }
+  
+  return itemCounter;
+}
+
 function getItemHtml(lines: string[], itemMap: Map<string,
     string>, maxItems: number, params: HistSettings):
     [string[], Map<string, number>] {
-    
-  if (params.displayMode === 1) {  // 1 = displayMode.simple
-  return getSimpleItemHtml(lines, itemMap, maxItems, params);
+  
+  if (params.displayMode === displayMode.simple) {
+    return getSimpleItemHtml(lines, itemMap, maxItems, params);
   }
   
   const dateScope = new Set(['today']);
   const activeTrail = new Set() as Set<number>;
   let itemCounter = new Map<string, number>();
   let itemHtml: string[] = [];
-  const sectIndex: number[] = [];  // keep a tab on all array indices that contain sections
+  const sectIndex: number[] = [];
   const N = Math.min(maxItems, lines.length);
 
   itemHtml.push(`<details open class="hist-section"><summary class="hist-section" style="font-size: ${params.panelTextSize}px">Today</summary>`);
@@ -59,9 +80,6 @@ function getItemHtml(lines: string[], itemMap: Map<string,
     const plotTag = getPlotTag(item.trails, activeTrail, params);
     const [backTagStart, backTagStop] = getBackTag(i, params);
     const todoTag = getTodoTag(item, params);
-
-    if (params.freqLoc != freqLoc.hide)
-      updateStats(item, itemCounter, itemMap, dateScope, params);
 
     itemHtml.push(`
             ${foldTag}
@@ -77,7 +95,6 @@ function getItemHtml(lines: string[], itemMap: Map<string,
   }
   itemHtml.push('</details>');
 
-  // close all sections except the one that contains currentLine
   for (let i=0; i<sectIndex.length-1; i++) {
     if (sectIndex[i+1] > params.currentLine + 1)
       break
@@ -92,10 +109,9 @@ function getSimpleItemHtml(lines: string[], itemMap: Map<string,
     [string[], Map<string, number>] {
   
   const activeTrail = new Set() as Set<number>;
-  let itemCounter = new Map<string, number>();
+  let itemCounter = new Map<string, number>(); // Wird nicht mehr verwendet
   let itemHtml: string[] = [];
   const N = Math.min(params.simpleListLimit, lines.length, maxItems);
-  const dateScope = new Set(['all']);
 
   itemHtml.push(`<details open class="hist-section"><summary class="hist-section" style="font-size: ${params.panelTextSize}px">Last ${N} Notes</summary>`);
 
@@ -107,9 +123,6 @@ function getSimpleItemHtml(lines: string[], itemMap: Map<string,
     const [backTagStart, backTagStop] = getBackTag(i, params);
     const todoTag = getTodoTag(item, params);
     const timeTag = getTimeAgoTag(item.date, params);
-
-    if (params.freqLoc != freqLoc.hide)
-      updateStats(item, itemCounter, itemMap, dateScope, params);
 
     itemHtml.push(`
       <p class="hist-item" style="font-size: ${params.panelTextSize}px; height: ${params.plotSize[1]}px">
@@ -132,7 +145,6 @@ function getSimpleItemHtml(lines: string[], itemMap: Map<string,
 
   return [itemHtml, itemCounter];
 }
-
 function getTimeAgoTag(date: Date, params: HistSettings): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
