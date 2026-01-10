@@ -113,7 +113,7 @@ function getSimpleItemHtml(lines: string[], itemMap: Map<string,
   let itemHtml: string[] = [];
   const N = Math.min(params.simpleListLimit, lines.length, maxItems);
 
-  itemHtml.push(`<details open class="hist-section"><summary class="hist-section" style="font-size: ${params.panelTextSize}px">Last ${N} Notes</summary>`);
+  itemHtml.push(`<details open class="hist-section"><summary class="hist-section" style="font-size: ${params.panelTextSize}px; font-weight: bold;">Last ${N} Notes</summary>`);
 
   for (let i = 0; i < N; i++) {
     const [item, error] = parseItem(lines[i]);
@@ -318,8 +318,8 @@ function getStatsHtml(itemCounter: Map<string, number>,
     strOpen = ' open';
   itemHtml.push(`
     <details class="hist-section"${strOpen}>
-      <summary class="hist-section" style="font-size: ${params.panelTextSize}px">
-      Frequent notes (${scopeText})</summary>`);
+      <summary class="hist-section" style="font-size: ${params.panelTextSize}px; font-weight: bold;">
+      Frequent Notes (${scopeText})</summary>`);
 
   let i = 0;
   noteOrder.forEach( (count, id) => {
