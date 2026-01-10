@@ -95,9 +95,9 @@ function getSimpleItemHtml(lines: string[], itemMap: Map<string,
   let itemCounter = new Map<string, number>();
   let itemHtml: string[] = [];
   const N = Math.min(params.simpleListLimit, lines.length, maxItems);
-  const dateScope = new Set(['all']); // für updateStats
+  const dateScope = new Set(['all']);
 
-  itemHtml.push(`<p class="hist-simple-header" style="font-size: ${params.panelTextSize}px; font-weight: bold; margin-top: 10px; margin-bottom: 10px;">Last ${N} Notes</p>`);
+  itemHtml.push(`<details open class="hist-section"><summary class="hist-section" style="font-size: ${params.panelTextSize}px">Last ${N} Notes</summary>`);
 
   for (let i = 0; i < N; i++) {
     const [item, error] = parseItem(lines[i]);
@@ -114,7 +114,6 @@ function getSimpleItemHtml(lines: string[], itemMap: Map<string,
     itemHtml.push(`
       <p class="hist-item" style="font-size: ${params.panelTextSize}px; height: ${params.plotSize[1]}px">
         ${plotTag}
-        <span class="hist-number" style="color: #999; margin-right: 8px; min-width: 25px; display: inline-block; font-size: ${params.panelTextSize - 2}px;">${i + 1}.</span>
         ${backTagStart}
         <a class="hist-item" href="#" data-slug="${item.id}" data-line="${i}">
           ${todoTag}${escapeHtml(item.title)}
@@ -123,7 +122,13 @@ function getSimpleItemHtml(lines: string[], itemMap: Map<string,
         ${timeTag}
       </p>
     `);
+    
+    if ((i + 1) % 5 === 0 && (i + 1) < N) {
+      itemHtml.push(`<hr style="border: none; border-top: 1px solid #ddd; margin: 5px 0;">`);
+    }
   }
+
+  itemHtml.push('</details>');
 
   return [itemHtml, itemCounter];
 }
